@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const axios = require('axios');
+const User = require('../../models/User');
 require('dotenv').config();
 
 module.exports = {
@@ -30,10 +31,74 @@ module.exports = {
                     'Authorization': `${process.env.api_key}`
                 }
             });
-            console.log(res.data)
-
-
             
+            const discord_id = interaction.user.id;
+            const account_level = res.data.data.account_level;
+            const puuid = res.data.data.puuid;
+            const region = res.data.data.region;
+            const small_card_url = res.data.data.card.small;
+            const large_card_url = res.data.data.card.large;
+            const wide_card_url = res.data.data.card.wide;
+            const elo = res.data.data.elo;
+            const current_tier_patched = res.data.data.currenttierpatched;
+
+            const user = await User.findOne({ where: { discord_id: discord_id } });
+            
+            if (user === null) {
+                try {
+                    const res = await axios.get(`https://api.henrikdev.xyz/valorant/v1/by-puuid/mmr/${region}/${puuid}`, {
+                    headers: {
+                        'Authorization': `${process.env.api_key}`
+                    }
+                });
+                await User.create({
+                    discord_id: discord_id,
+                    valorant_name: name,
+                    valorant_tag: tag,
+                    puuid: puuid,
+                    elo: elo,
+                    current_tier_patched: current_tier_patched,
+                    region: region,
+                    account_level: account_level,
+                    small_card_url: small_card_url,
+                    large_card_url: large_card_url,
+                    wide_card_url: wide_card_url
+                });
+
+                embed = new EmbedBuilder()
+                    .setTitle(`Прив'язка пройшла успішно ✅`)
+                    .setDescription(`Тепер ви можете користуватись командою /stats`)
+                    .setColor('#2d912c')
+                    .setTimestamp(Date.now());
+
+                await interaction.editReply({
+                    embeds: [embed],
+                });
+
+                } catch (error) {
+                    console.error(error);
+                    embed = new EmbedBuilder()
+                    .setTitle(`Упссс, я поламався 😭`)
+                    .setDescription(`Зв\'яжись з адміном, нехай гляне що там сталось`)
+                    .setColor('#f80c0c')
+                    .setTimestamp(Date.now());
+
+                    await interaction.editReply({
+                        embeds: [embed],
+                    });
+                }
+            
+            } else {
+                embed = new EmbedBuilder()
+                    .setTitle(`Ви уже зареєстровані 🚫`)
+                    .setDescription(`Якщо це не так зв'яжіться з адміністрацією`)
+                    .setColor('#f80c0c')
+                    .setTimestamp(Date.now());
+
+                await interaction.editReply({
+                    embeds: [embed],
+                });
+            }      
         } catch (error) {
             const err = error.response.data.status;
             let title, description;
@@ -55,7 +120,7 @@ module.exports = {
                     description = 'Спробуй будь ласка ще раз через хвилину';
                     break;
                 default:
-                    title = 'Упссс, я поламався 🤨';
+                    title = 'Упссс, я поламався 😭';
                     description = 'Зв\'яжись з адміном, нехай гляне що там сталось';                
             };
             embed = new EmbedBuilder()
@@ -64,8 +129,8 @@ module.exports = {
                         .setColor('#f80c0c')
                         .setTimestamp(Date.now());
 
-                        await interaction.editReply({
-                            embeds: [embed],
+            await interaction.editReply({
+                embeds: [embed],
             });
             
         }          

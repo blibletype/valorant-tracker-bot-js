@@ -1,6 +1,7 @@
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../../src/database');
 
+
 class User extends Model {}
 
 User.init({
@@ -17,6 +18,12 @@ User.init({
     puuid: {
         type: DataTypes.STRING,
         unique: true
+    },
+    elo: {
+        type: DataTypes.INTEGER
+    },
+    current_tier_patched: {
+        type: DataTypes.STRING
     },
     region: {
         type: DataTypes.STRING
