@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js')
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -6,12 +6,25 @@ module.exports = {
         .setDescription('Return my ping!'),
     async execute(interaction, client) {
         const message = await interaction.deferReply({
-            fetchReply: true
+            fetchReply: true,
+            ephemeral: true
         });
-        
-        const newMessage = `API Latency: ${client.ws.ping}\nClient Ping: ${message.createdTimestamp - interaction.createdTimestamp}`
+        embed = new EmbedBuilder()
+            .addFields([
+                {
+                    name: 'API Lanency:',
+                    value: `${client.ws.ping}`,
+                    inline: false
+                },
+                {
+                    name: 'Client Ping:',
+                    value: `${message.createdTimestamp - interaction.createdTimestamp} ms`,
+                    inline: false
+                } 
+            ])
+            .setTimestamp(Date.now());
         await interaction.editReply({
-            content: newMessage
+            embeds: [embed],
         });
     }
 };
