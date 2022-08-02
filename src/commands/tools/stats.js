@@ -148,8 +148,12 @@ module.exports = {
                 for (role of list) {
                     for (rank_role of roles_list) {
                         if(role[1].name === rank_role) {
-                            let del_role = interaction.guild.roles.cache.find((r) => r.name == rank_role);
-                            await interaction.member.roles.remove(del_role);
+                            try {
+                                let del_role = interaction.guild.roles.cache.find((r) => r.name == rank_role);
+                                await interaction.member.roles.remove(del_role);
+                            } catch (error) {
+                                console.error(error);
+                            }
                         }
                     }
                 };
